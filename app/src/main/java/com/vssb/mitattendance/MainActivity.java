@@ -2,6 +2,7 @@ package com.vssb.mitattendance;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
@@ -28,15 +29,18 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     public  static int i =0;
-  // public static TextView responseView,progressView;
-  //  public static Button refreshButton;
+    public static TextView responseView,progressView;
+    public static Button detailedAttendanceButton,refreshButton,logoutButton;
+    SwipeRefreshLayout mSwipeRefreshLayout;
     public String result;
     public  static String username,password;
+    public static AsyncResponse asyncResponse;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
 
         final SharedPreferences loginInfoPreferences = this.getSharedPreferences("loginInfoPreferences",MODE_PRIVATE);
 
@@ -48,28 +52,14 @@ public class MainActivity extends AppCompatActivity {
             MainActivity.this.finish();
         }
         else {
-            //refreshButton = (Button) findViewById(R.id.refresh_attendance_button);
-        /*    refreshButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    progressView.setText("Refreshing...");
-                    new RequestTask(MainActivity.this,loginInfoPreferences.edit()).execute("https://www.tcsion.com/iONBizServices/Authenticate?usrloginid=" + username + "&usrpassword=" + password);
-                }
-            });*/
 
-         //   responseView = (TextView) findViewById(R.id.response_display_textview);
-         //   responseView.setMovementMethod(new ScrollingMovementMethod());
-         //   progressView = (TextView) findViewById(R.id.progress_display_text_view);
-
-
-          //  responseView.setText(loginInfoPreferences.getString("totalPercentage", ""));
-         //   progressView.setText("Refreshing...");
             result = null;
 
            // if(i == 0)
-            AsyncResponse asyncResponse = new AsyncResponse() {
+            asyncResponse = new AsyncResponse() {
                 @Override
                 public void processFinish(Object output) {
+
                     result = (String) output;
                     SharedPreferences.Editor loginInfoPreferencesEditor = loginInfoPreferences.edit() ;
                     Log.i("vssb", result);
@@ -88,34 +78,16 @@ public class MainActivity extends AppCompatActivity {
                         loginInfoPreferencesEditor.putString("totalPercentage", attendance);
                         loginInfoPreferencesEditor.putString("fullAttendance", jsonObj.toString());
                         loginInfoPreferencesEditor.commit();
-                        ArrayList<String> subjectWiseAttendance = new ArrayList<String>();
-                        for(int j=1; j<rows.length() ;j++) {
-                            row = rows.getJSONObject(j).getJSONObject("columns").getJSONArray("col");
-                            String subjectName = row.getJSONObject(1).getString("content");
-                            subjectName = subjectName.substring(subjectName.indexOf("TA") + 3, subjectName.indexOf("]]"));
-                            String totalLec = row.getJSONObject(3).getString("content");
-                            totalLec = totalLec.substring(totalLec.indexOf("TA") + 3, totalLec.indexOf("]]"));
-                            String lecAttended = row.getJSONObject(4).getString("content");
-                            lecAttended = lecAttended.substring(lecAttended.indexOf("TA") + 3, lecAttended.indexOf("]]"));
-                            String percentageAttendance = row.getJSONObject(5).getString("content");
-                            percentageAttendance = percentageAttendance.substring(percentageAttendance.indexOf("TA") + 3, percentageAttendance.indexOf("%") + 1);
-                            subjectWiseAttendance.add(subjectName+"   "+lecAttended+"/"+totalLec+"   "+percentageAttendance);
-                        }
-                        ArrayAdapter<String> attendAdapter = new ArrayAdapter<String>(
-                                MainActivity.this,
-                                R.layout.attendance_list,
-                                R.id.attendance_text_view,
-                                subjectWiseAttendance
-                        );
-                        ListView listView = (ListView) findViewById(R.id.attendance_list_View);
-                        listView.setAdapter(attendAdapter);
+
+
                     } catch (JSONException e) {
                         Log.e("JSON exception", e.getMessage());
                         e.printStackTrace();
                     }
-                    //    MainActivity.progressView.setText("");
+                   // MainActivity.progressView.setText("");
 
-                    //  MainActivity.responseView.setText(attendance);
+                    MainActivity.responseView.setText(attendance);
+                    if(mSwipeRefreshLayout.isRefreshing()) mSwipeRefreshLayout.setRefreshing(false);
 //                int maxLogSize = 1000;
 //                String veryLongString = jsonObj.toString();
 //                for(int i = 0; i <= veryLongString.length() / maxLogSize; i++) {
@@ -132,8 +104,70 @@ public class MainActivity extends AppCompatActivity {
                     // }
                 }
             };
+            mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.activity_main_swipe_refresh_layout);
+
+            mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                @Override
+                public void onRefresh() {
+
+
+                }
+            });
+            mSwipeRefreshLayout.post(new Runnable() {
+                @Override
+                public void run() {
+                    mSwipeRefreshLayout.setRefreshing(true);
+
+                }
+            });
             RequestTask asyncTask =new RequestTask (MainActivity.this,loginInfoPreferences.edit(),asyncResponse);
             asyncTask.execute("https://www.tcsion.com/iONBizServices/Authenticate?usrloginid=" + username + "&usrpassword=" + password);
+
+            detailedAttendanceButton = (Button) findViewById(R.id.detailed_attendance_button);
+            detailedAttendanceButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent detailedAttendanceIntent = new Intent(MainActivity.this,DetailedAttendanceActivity.class);
+                    startActivity(detailedAttendanceIntent);
+                }
+            });
+
+            responseView = (TextView) findViewById(R.id.response_display_textview);
+            refreshButton = (Button) findViewById(R.id.refresh_attendance_button);
+            refreshButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mSwipeRefreshLayout.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            mSwipeRefreshLayout.setRefreshing(true);
+
+                        }
+                    });
+                    RequestTask asyncTask =new RequestTask (MainActivity.this,loginInfoPreferences.edit(),asyncResponse);
+                    asyncTask.execute("https://www.tcsion.com/iONBizServices/Authenticate?usrloginid=" + username + "&usrpassword=" + password);
+                }
+            });
+
+            logoutButton = (Button) findViewById(R.id.logout_button);
+            logoutButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    SharedPreferences.Editor loginInfoPreferencesEditor = loginInfoPreferences.edit();
+                    loginInfoPreferencesEditor.putString("username", "");
+                    loginInfoPreferencesEditor.putString("password", "");
+                    loginInfoPreferencesEditor.commit();
+                    Intent mainActivityRefreshIntent = new Intent(MainActivity.this, MainActivity.class);
+                    startActivity(mainActivityRefreshIntent);
+                    MainActivity.this.finish();
+                }
+            });
+            //   responseView.setMovementMethod(new ScrollingMovementMethod());
+            //progressView = (TextView) findViewById(R.id.progress_display_text_view);
+
+
+            //  responseView.setText(loginInfoPreferences.getString("totalPercentage", ""));
+            //   progressView.setText("Refreshing...");
         }
     }
 
