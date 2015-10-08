@@ -1,5 +1,6 @@
 package com.vssb.mitattendance;
 
+import android.app.ActionBar;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -29,18 +30,18 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     public  static int i =0;
-    public static TextView responseView,progressView;
-    public static Button detailedAttendanceButton,refreshButton,logoutButton;
+    public static TextView responseView;
+    public static Button detailedAttendanceButton;
     SwipeRefreshLayout mSwipeRefreshLayout;
     public String result;
     public  static String username,password;
     public static AsyncResponse asyncResponse;
-
+    android.support.v7.app.ActionBar actionBar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        actionBar = getSupportActionBar();
 
         final SharedPreferences loginInfoPreferences = this.getSharedPreferences("loginInfoPreferences",MODE_PRIVATE);
 
@@ -87,21 +88,10 @@ public class MainActivity extends AppCompatActivity {
                    // MainActivity.progressView.setText("");
 
                     MainActivity.responseView.setText(attendance);
-                    if(mSwipeRefreshLayout.isRefreshing()) mSwipeRefreshLayout.setRefreshing(false);
-//                int maxLogSize = 1000;
-//                String veryLongString = jsonObj.toString();
-//                for(int i = 0; i <= veryLongString.length() / maxLogSize; i++) {
-//                    int start = i * maxLogSize;
-//                    int end = (i+1) * maxLogSize;
-//                    end = end > veryLongString.length() ? veryLongString.length() : end;
-//                    Log.v("vssbjson", veryLongString.substring(start, end));
-//                }
-                    //new RequestTask().execute(result.substring(result.indexOf("https://"),result.indexOf("/>")-1).replace("&amp;","&").replace(" ",""));
-
-                    //Do anything with response.
-                    //
-                    //
-                    // }
+                    if(mSwipeRefreshLayout.isRefreshing()) {
+                        mSwipeRefreshLayout.setRefreshing(false);
+                        actionBar.show();
+                    }
                 }
             };
             mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.activity_main_swipe_refresh_layout);
@@ -109,7 +99,6 @@ public class MainActivity extends AppCompatActivity {
             mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
                 @Override
                 public void onRefresh() {
-
 
                 }
             });
@@ -133,41 +122,6 @@ public class MainActivity extends AppCompatActivity {
             });
 
             responseView = (TextView) findViewById(R.id.response_display_textview);
-            refreshButton = (Button) findViewById(R.id.refresh_attendance_button);
-            refreshButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    mSwipeRefreshLayout.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            mSwipeRefreshLayout.setRefreshing(true);
-
-                        }
-                    });
-                    RequestTask asyncTask =new RequestTask (MainActivity.this,loginInfoPreferences.edit(),asyncResponse);
-                    asyncTask.execute("https://www.tcsion.com/iONBizServices/Authenticate?usrloginid=" + username + "&usrpassword=" + password);
-                }
-            });
-
-            logoutButton = (Button) findViewById(R.id.logout_button);
-            logoutButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    SharedPreferences.Editor loginInfoPreferencesEditor = loginInfoPreferences.edit();
-                    loginInfoPreferencesEditor.putString("username", "");
-                    loginInfoPreferencesEditor.putString("password", "");
-                    loginInfoPreferencesEditor.commit();
-                    Intent mainActivityRefreshIntent = new Intent(MainActivity.this, MainActivity.class);
-                    startActivity(mainActivityRefreshIntent);
-                    MainActivity.this.finish();
-                }
-            });
-            //   responseView.setMovementMethod(new ScrollingMovementMethod());
-            //progressView = (TextView) findViewById(R.id.progress_display_text_view);
-
-
-            //  responseView.setText(loginInfoPreferences.getString("totalPercentage", ""));
-            //   progressView.setText("Refreshing...");
         }
     }
 
@@ -184,10 +138,28 @@ public class MainActivity extends AppCompatActivity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
+        final SharedPreferences loginInfoPreferences = this.getSharedPreferences("loginInfoPreferences", MODE_PRIVATE);
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_refresh) {
+            mSwipeRefreshLayout.post(new Runnable() {
+                @Override
+                public void run() {
+                    mSwipeRefreshLayout.setRefreshing(true);
+                    actionBar.hide();
+                }
+            });
+            RequestTask asyncTask =new RequestTask (MainActivity.this,loginInfoPreferences.edit(),asyncResponse);
+            asyncTask.execute("https://www.tcsion.com/iONBizServices/Authenticate?usrloginid=" + username + "&usrpassword=" + password);
             return true;
+        }
+        else if(id == R.id.action_log_out) {
+            SharedPreferences.Editor loginInfoPreferencesEditor = loginInfoPreferences.edit();
+            loginInfoPreferencesEditor.putString("username", "");
+            loginInfoPreferencesEditor.putString("password", "");
+            loginInfoPreferencesEditor.commit();
+            Intent mainActivityRefreshIntent = new Intent(MainActivity.this, MainActivity.class);
+            startActivity(mainActivityRefreshIntent);
+            MainActivity.this.finish();
         }
 
         return super.onOptionsItemSelected(item);
