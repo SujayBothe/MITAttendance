@@ -11,6 +11,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.rengwuxian.materialedittext.MaterialEditText;
+
 public class LoginInputActivity extends AppCompatActivity {
     public  static EditText usernameInputField, passwordInputField;
     @Override
@@ -18,8 +20,8 @@ public class LoginInputActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login_input);
         getSupportActionBar().hide();
-        usernameInputField = (EditText) findViewById(R.id.username_input_field);
-        passwordInputField = (EditText) findViewById(R.id.password_input_field);
+        usernameInputField = (MaterialEditText) findViewById(R.id.username_input_field);
+        passwordInputField = (MaterialEditText) findViewById(R.id.password_input_field);
         Button loginSubmitButton = (Button) findViewById(R.id.login_submit_button);
         loginSubmitButton.setOnClickListener(new View.OnClickListener() {
             @Override

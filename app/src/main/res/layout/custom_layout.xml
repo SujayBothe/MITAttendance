@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#3b5994">
+
+    <ImageView
+        android:layout_marginTop="2dp"
+        android:id="@+id/colorBorder"
+        android:background="@drawable/rectangle"
+        android:layout_width="10dp"
+        android:layout_height="120dp"/>
+
+    <!-- Use same ID to use built-in features -->
+    <TextView
+        android:layout_toRightOf="@id/colorBorder"
+        android:id="@+id/card_main_inner_simple_title"
+        android:layout_marginLeft="10dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@android:color/white"
+        android:textSize="20sp"/>
+
+</RelativeLayout>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:id="@+id/main_custom_relative_layout"
+    android:background="#3b5994">
+
+    <!-- Use same ID to use built-in features -->
+    <TextView
+        android:layout_toRightOf="@id/colorBorder"
+        android:id="@+id/card_main_inner_simple_title"
+        android:layout_marginLeft="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="130dp"
+        android:textColor="@android:color/white"
+        android:textSize="34sp"/>
+
+
+</RelativeLayout>

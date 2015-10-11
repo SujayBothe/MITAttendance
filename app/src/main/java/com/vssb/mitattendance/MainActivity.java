@@ -3,6 +3,7 @@ package com.vssb.mitattendance;
 import android.app.ActionBar;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -15,6 +16,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import org.json.JSONArray;
@@ -27,6 +29,10 @@ import org.jsoup.nodes.Document;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import it.gmariotti.cardslib.library.internal.Card;
+import it.gmariotti.cardslib.library.internal.CardHeader;
+import it.gmariotti.cardslib.library.view.CardViewNative;
 
 public class MainActivity extends AppCompatActivity {
     public  static int i =0;
@@ -75,19 +81,30 @@ public class MainActivity extends AppCompatActivity {
                         lastRowCols = rows.getJSONObject(rows.length() - 1).getJSONObject("columns").getJSONArray("col");
                         attendance = lastRowCols.getJSONObject(lastRowCols.length() - 1).getString("content");
                         attendance = attendance.substring(attendance.indexOf("TA") + 3, attendance.indexOf("%") + 1);
+
                         Log.i("vssb attendance is",  attendance);
                         loginInfoPreferencesEditor.putString("totalPercentage", attendance);
                         loginInfoPreferencesEditor.putString("fullAttendance", jsonObj.toString());
                         loginInfoPreferencesEditor.commit();
 
-
                     } catch (JSONException e) {
                         Log.e("JSON exception", e.getMessage());
                         e.printStackTrace();
                     }
+                    /*
+                    if(Float.parseFloat(attendance.substring(0,2))<75.0){
+                        RelativeLayout rl = (RelativeLayout)findViewById(R.id.main_custom_relative_layout);
+                        rl.setBackgroundColor(Color.RED);
+                    }*/
                    // MainActivity.progressView.setText("");
-
-                    MainActivity.responseView.setText(attendance);
+                    Card card = new Card(getBaseContext(),R.layout.main_custom_layout);
+                    card.setTitle("\n\t\t\t\t\t\t\t\t"+attendance);
+                    CardHeader header = new CardHeader(getBaseContext());
+                    header.setTitle("\t\t\t\t\t\t\t\tTotal Attendance");
+                    card.addCardHeader(header);
+                    CardViewNative cardView = (CardViewNative) MainActivity.this.findViewById(R.id.carddemo);
+                    cardView.setCard(card);
+                   // MainActivity.responseView.setText(attendance);
                     if(mSwipeRefreshLayout.isRefreshing()) {
                         mSwipeRefreshLayout.setRefreshing(false);
                         actionBar.show();
@@ -121,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
-            responseView = (TextView) findViewById(R.id.response_display_textview);
+           // responseView = (TextView) findViewById(R.id.response_display_textview);
         }
     }
 
